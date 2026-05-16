@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   <style>
+        /* --- CARDS KI CSS --- */
+        #list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            width: 250px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: #f5f3f3;
+            font-family: Arial, sans-serif;
+        }
+
+        .product-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .product-card p {
+            margin: 0 0 15px 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Buttons Container */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        #productForm{
+            padding-left: 20px;
+            justify-content: center;
+            text-align: center;
+        }
+        .Updateinput{
+            /* margin-left: 20px; */
+            padding: 3px;
+            font-size: 15px;
+        }
+        #productForm button{
+            font-size: 17px;
+            padding: 2px 30px 0px ;
+            margin: 2px;
+            
+        }
+        #formTitle{
+            justify-content: center;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. FORM -->
+    <h3 id="formTitle">Add Product</h3>
+    <form id="productForm">
+        <input type="text" class="Updateinput" id="name" placeholder="Product Name" required>
+        <input type="number" class="Updateinput" id="price" placeholder="Price" required>
+        <button type="submit" id="submitBtn">Add</button>
+    </form>
+
+    <hr>
+
+    <!-- 2. Get productss-->
+    <h3>Product Cards</h3>
+    <ul id="list"></ul>
+
+    <script>
+        const API_URL = 'http://localhost:3000/products';
+
+        function loadProducts() {
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('list');
+                    list.innerHTML = ''; 
+
+                    data.products.forEach(p => {
+                        list.innerHTML += `
+                            <li class="product-card">
+                                <h4>${p.name}</h4>
+                                <p>Price: $${p.price}</p>
+                                <div class="btn-group">
+                                    <!-- Edit Button -->
+                                    <button class="edit-btn" onclick="editProduct(${p.id}, '${p.name}', ${p.price})">Edit</button>
+                                    <!-- New Delete Button -->
+                                    <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
+                                </div>
+                            </li>
+                        `;
+                    });
+                })
+                .catch(err => console.error("Error loading products:", err));
+        }
+
+        loadProducts(); 
+
+
+        function editProduct(id, name, price) {
+            document.getElementById('name').value = name;
+            document.getElementById('price').value = price;
+            document.getElementById('formTitle').innerText = "Edit Product";
+            document.getElementById('submitBtn').innerText = "Update";
+            document.getElementById('productForm').dataset.editId = id;
+        }
+
+
+      function deleteProduct(id) {
+    if (confirm("Are you sure you want to delete this product?")) {
+        fetch(`http://localhost:3000/product/${id}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(result => {
+            alert(result.message);
+            loadProducts(); 
+        })
+        .catch(err => console.error(err));
+    }
+}
+
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+            e.preventDefault(); 
+
+            const editId = document.getElementById('productForm').dataset.editId;
+            
+            const data = {
+                name: document.getElementById('name').value,
+                price: Number(document.getElementById('price').value)
+            };
+
+            if (editId) {
+                fetch(`http://localhost:3000/product/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(result => {
+                    alert(result.message); 
+                    resetForm();
+                    loadProducts(); 
+                });
+            } else {
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(result => {
+                    alert(result.message); 
+                    resetForm();
+                    loadProducts(); 
+                });
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('formTitle').innerText = "Add Product";
+            document.getElementById('submitBtn').innerText = "Add";
+            delete document.getElementById('productForm').dataset.editId;
+        }
+    </script>
+
+</body>
+</html>
