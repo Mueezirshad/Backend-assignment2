@@ -8,8 +8,15 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/product(.*)",
       "dest": "app.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.html"
     }
   ]
 }
