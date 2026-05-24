@@ -1,76 +1,130 @@
-const express = require('express')
+const express = require("express");
 const app = express();
 const cors = require("cors");
 const { config } = require('dotenv')
 
-app.use(express.json())
+
+app.use(express.json());
 app.use(cors());
 
-let port = process.env.PORT || 3000
+let port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('welcome to my backened')
-})
 let products = [
-    { id: 1, name: 'Shoes', price: 100 },
-    { id: 2, name: 'Laptop', price: 200 },
-    { id: 3, name: 'Mouse', price: 300 },
-    { id: 4, name: 'Keychain', price: 400 },
-]
-app.get('/products', (req, res) => {
-    res.json({ limit: 30, page: 1, products: products })
-})
+  {
+    id: 1,
+    title: "Essence Mascara",
+    price: 100,
+    description: "Comfortable running shoes",
+    category: "fashion",
+    rating: 4.5,
+    thumbnail: "https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/thumbnail.webp"
+  },
+  {
+    id: 2,
+    title: "Laptop",
+    price: 200,
+    description: "High performance laptop",
+    category: "electronics",
+    rating: 4.8,
+    thumbnail: "https://cdn.dummyjson.com/product-images/beauty/eyeshadow-palette-with-mirror/thumbnail.webp"
+  },
+  {
+    id: 3,
+    title: "Mouse",
+    price: 300,
+    description: "Wireless mouse",
+    category: "electronics",
+    rating: 4.2,
+    thumbnail:  "https://cdn.dummyjson.com/product-images/beauty/powder-canister/thumbnail.webp"
+  },
+  {
+    id: 4,
+    title: "Keychain",
+    price: 400,
+    description: "Stylish keychain",
+    category: "accessories",
+    rating: 4.0,
+    thumbnail: "https://cdn.dummyjson.com/product-images/beauty/red-lipstick/thumbnail.webp"
+  }
+];
+
+app.get("/", (req, res) => {
+  res.send("welcome to my backend");
+});
+
+app.get("/products", (req, res) => {
+  res.json({
+    limit: 30,
+    page: 1,
+    products: products
+  });
+});
+
+app.get("/products/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const product = products.find((p) => p.id === id);
+
+  if (!product) {
+    return res.status(404).json({ message: "product not found" });
+  }
+
+  res.json(product);
+});
 
 app.post("/products", (req, res) => {
-    console.log(req.body.name);
-    console.log(req.body.price);
+  const newProduct = {
+    id: products.length + 1,
+    title: req.body.title,
+    price: req.body.price,
+    description: req.body.description || "",
+    category: req.body.category || "general",
+    rating: req.body.rating || 4,
+    thumbnail: req.body.thumbnail || "https://i.imgur.com/1.jpg"
+  };
 
-    const newProduct = {
-        id: products.length + 1,
-        name: req.body.name,
-        price: req.body.price
-    }
-    products.push(newProduct);
+  products.push(newProduct);
 
+  res.status(201).json({
+    message: "product added successfully!",
+    product: newProduct
+  });
+});
 
-    res.status(201).json({ message: 'product added successfully!', newProduct })
-})
+app.put("/products/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const product = products.find((p) => p.id === id);
 
-app.put("/product/:id", (req, res) => {
-    console.log(req.params.id);
-    const id = Number(req.params.id);
+  if (!product) {
+    return res.status(404).json({ message: "product not found!" });
+  }
 
-    console.log(req.body.name);
-    console.log(req.body.price);
-    const product = products.find((product) => product.id === id)
+  product.title = req.body.title || product.title;
+  product.price = req.body.price || product.price;
+  product.description = req.body.description || product.description;
+  product.category = req.body.category || product.category;
+  product.rating = req.body.rating || product.rating;
+  product.thumbnail = req.body.thumbnail || product.thumbnail;
 
-    if (!product) {
-        return res.status(404).json({ message: "product not found!" })
-    }
-    product.name = req.body.name || product.name
-    product.price = req.body.price || product.price
+  res.json({
+    message: "product updated successfully!",
+    product
+  });
+});
 
+app.delete("/products/:id", (req, res) => {
+  const id = Number(req.params.id);
 
-    res.status(200).json({ message: "product updated successfully!", product })
+  const product = products.find((p) => p.id === id);
 
-})
+  if (!product) {
+    return res.status(404).json({ message: "product not found!" });
+  }
 
-app.delete("/product/:id", (req, res) => {
-    console.log(req.params.id);
-    const id = Number(req.params.id);
+  products = products.filter((p) => p.id !== id);
 
-    const product = products.find((product) => product.id === id);
-
-    if (!product) {
-        return res.status(404).json({ message: "product not found!" })
-    }
-    products = products.filter((p) => p.id !== id)
-
-    res.status(200).json({ message: "product deleted successfully!" })
-
-})
+  res.json({ message: "product deleted successfully!" });
+});
 
 app.listen(port, () => {
-    console.log('server is running in port ' + port);
-
-})
+  console.log("server is running in port " + port);
+});
